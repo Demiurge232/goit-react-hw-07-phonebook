@@ -1,36 +1,48 @@
-import { nanoid } from 'nanoid';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import {
   PhonebookForm,
   PhonebookButton,
   PhonebookInput,
 } from './ContactForm.styled';
-import { addContact } from 'redux/contactsSlice';
+import { toast } from 'react-toastify';
+import { addContact } from 'redux/operations';
+import { selectItems } from 'redux/selectors';
 
 export default function ContactForm() {
   const dispatch = useDispatch();
-
-  const nameInputId = nanoid();
-  const numberInputId = nanoid();
+  const items = useSelector(selectItems);
 
   const handleSubmit = event => {
     event.preventDefault();
-    const { name, number } = event.target.elements;
-    dispatch(addContact(name.value, number.value));
+    const { name, phone } = event.target.elements;
+
+    if (items.find(contact => contact.name === name.value)) {
+      toast.error(`${name.value} is already in contacts`, {
+        position: toast.POSITION.TOP_CENTER,
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    const contactData = {
+      name: name.value,
+      phone: phone.value,
+    };
+
+    dispatch(addContact(contactData));
     reset(event);
   };
 
   const reset = event => {
-    const { name, number } = event.target.elements;
+    const { name, phone } = event.target.elements;
     name.value = '';
-    number.value = '';
+    phone.value = '';
   };
 
   return (
     <PhonebookForm onSubmit={handleSubmit}>
       <label>Name</label>
       <PhonebookInput
-        id={nameInputId}
         type="text"
         name="name"
         pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
@@ -39,9 +51,8 @@ export default function ContactForm() {
       />
       <label>Number</label>
       <PhonebookInput
-        id={numberInputId}
         type="tel"
-        name="number"
+        name="phone"
         pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
         title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
         required

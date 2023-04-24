@@ -1,24 +1,22 @@
 import ContactItem from 'components/ContactItem/ContactItem';
 import { ContactListUl } from './ContactList.styled';
-import { useSelector } from 'react-redux';
-import { getContacts, getFilter } from 'redux/selectors';
+import { useDispatch, useSelector } from 'react-redux';
+import { selectFindContact } from 'redux/selectors';
+import { useEffect } from 'react';
+import { fetchContacts } from 'redux/operations';
 
 export const ContactList = () => {
-  const contacts = useSelector(getContacts);
-  const filter = useSelector(getFilter);
+  const items = useSelector(selectFindContact);
+  const dispatch = useDispatch();
 
-  const getFindContact = () => {
-    const normalizedFilter = filter.toLowerCase();
-    return contacts.filter(contact =>
-      contact.name.toLowerCase().includes(normalizedFilter)
-    );
-  };
-  const renderFindContact = getFindContact();
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
 
   return (
     <ContactListUl>
-      {renderFindContact.map(({ name, id, number }) => (
-        <ContactItem name={name} key={id} id={id} number={number} />
+      {items.map(({ name, id, phone }) => (
+        <ContactItem name={name} key={id} id={id} phone={phone} />
       ))}
     </ContactListUl>
   );
